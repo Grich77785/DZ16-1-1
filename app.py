@@ -67,7 +67,7 @@ class Order(db.Model):
 class Offer(db.Model):
     __tablename__ = "offer"
     id = db.Column(db.Integer, primary_key=True)
-    order_id = db.Column(db.Integer, db.ForeingnKey(f"{Order.__tablename__}.id"))
+    order_id = db.Column(db.Integer, db.ForeignKey(f"{Order.__tablename__}.id"))
     executor_id = db.Column(db.Integer, db.ForeignKey(f"{User.__tablename__}.id"))
 
     def to_dict(self):
@@ -105,9 +105,9 @@ def users():
 
 
 @app.route("/users/<int:uid>", methods=["GET", "PUT", "DELETE"])
-def users(uid: int):
+def users_q(uid: int):
     if request.method == "GET":
-        return json.dumps(User.query.get(uid).to_dict), 200, {'Content-Type': 'application/json; charset=utf-8'}
+        return json.dumps(User.query.get(uid).to_dict()), 200, {'Content-Type': 'application/json; charset=utf-8'}
     if request.method == "PUT":
         user_data = json.loads(request.data)
         u = User.query.get(uid)
@@ -162,11 +162,10 @@ def orders():
 
         return "", 201
 
-
 @app.route("/orders/<int:uid>", methods=["GET", "PUT", "DELETE"])
-def orders(uid: int):
+def orders_q(uid: int):
     if request.method == "GET":
-        return json.dumps(Order.query.get(uid).to_dict), 200, {'Content-Type': 'application/json; charset=utf-8'}
+        return json.dumps(Order.query.get(uid).to_dict()), 200, {'Content-Type': 'application/json; charset=utf-8'}
     if request.method == "PUT":
        order_data = json.loads(request.data)
        u = Order.query.get(uid)
@@ -185,7 +184,6 @@ def orders(uid: int):
        db.session.commit()
 
        return "", 201
-
 
     if request.method == "DELETE":
         u = Order.query.get(uid)
@@ -219,9 +217,9 @@ def offers():
 
 
 @app.route("/offers/<int:uid>", methods=["GET", "PUT", "DELETE"])
-def offers(uid: int):
+def offers_q(uid: int):
     if request.method == "GET":
-        return json.dumps(Offer.query.get(uid).to_dict), 200, {'Content-Type': 'application/json; charset=utf-8'}
+        return json.dumps(Offer.query.get(uid).to_dict()), 200, {'Content-Type': 'application/json; charset=utf-8'}
     if request.method == "PUT":
        offer_data = json.loads(request.data)
        u = Offer.query.get(uid)
@@ -247,48 +245,49 @@ def offers(uid: int):
 
 
 def init_database():
-    db.drop_all()
-    db.create_all()
+    with app.app_context():
+        db.drop_all()
+        db.create_all()
 
-    for user_data in raw_data.users:
-        db.session.add(
-            User(
-                id=user_data.get("id"),
-                first_name=user_data.get("first_name"),
-                last_name=user_data.get("last_name"),
-                age=user_data.get("age"),
-                email=user_data.get("email"),
-                role=user_data.get("role"),
-                phone=user_data.get("phone"),
+        for user_data in raw_data.users:
+            db.session.add(
+                User(
+                    id=user_data.get("id"),
+                    first_name=user_data.get("first_name"),
+                    last_name=user_data.get("last_name"),
+                    age=user_data.get("age"),
+                    email=user_data.get("email"),
+                    role=user_data.get("role"),
+                    phone=user_data.get("phone"),
+                )
             )
-        )
-        db.session.commit()
+            db.session.commit()
 
-    for order_data in raw_data.orders:
-        db.session.add(
-            Order(
-                id=order_data.get("id"),
-                name=order_data.get("name"),
-                description=order_data.get("description"),
-                start_date=order_data.get("start_date"),
-                end_date=order_data.get("end_date"),
-                address=order_data.get("address"),
-                price=order_data.get("price"),
-                customer_id=order_data.get("customer_id"),
-                executor_id=order_data.get("executor_id"),
+        for order_data in raw_data.orders:
+            db.session.add(
+                Order(
+                    id=order_data.get("id"),
+                    name=order_data.get("name"),
+                    description=order_data.get("description"),
+                    start_date=order_data.get("start_date"),
+                    end_date=order_data.get("end_date"),
+                    address=order_data.get("address"),
+                    price=order_data.get("price"),
+                    customer_id=order_data.get("customer_id"),
+                    executor_id=order_data.get("executor_id"),
+                )
             )
-        )
-        db.session.commit()
+            db.session.commit()
 
-    for offer_data in raw_data.offers:
-        db.session.add(
-            Offer(
-                id=offer_data.get("id"),
-                order_id=offer_data.get("order_id"),
-                executor_id=offer_data.get("executor_id"),
+        for offer_data in raw_data.offers:
+            db.session.add(
+                Offer(
+                    id=offer_data.get("id"),
+                    order_id=offer_data.get("order_id"),
+                    executor_id=offer_data.get("executor_id"),
+                )
             )
-        )
-        db.session.commit()
+            db.session.commit()
 
 
 if __name__ == '__main__':
