@@ -77,6 +77,7 @@ class Offer(db.Model):
             "executor_id": self.executor_id,
         }
 
+
 @app.route("/users", methods=["GET", "POST"])
 def users():
     if request.method == "GET":
@@ -86,7 +87,6 @@ def users():
         return json.dumps(result), 200, {'Content-Type': 'application/json; charset=utf-8'}
 
     if request.method == "POST":
-
         user_data = json.loads(request.data)
 
         db.session.add(
@@ -162,28 +162,29 @@ def orders():
 
         return "", 201
 
+
 @app.route("/orders/<int:uid>", methods=["GET", "PUT", "DELETE"])
 def orders_q(uid: int):
     if request.method == "GET":
         return json.dumps(Order.query.get(uid).to_dict()), 200, {'Content-Type': 'application/json; charset=utf-8'}
+
     if request.method == "PUT":
-       order_data = json.loads(request.data)
-       u = Order.query.get(uid)
+        order_data = json.loads(request.data)
+        order = Order.query.get(uid)
+        order.name = order_data.get("name")
+        order.description = order_data.get("description")
+        order.start_date = order_data.get("start_date")
+        order.end_date = order_data.get("end_date")
+        order.address = order_data.get("address")
+        order.price = order_data.get("price")
+        order.customer_id = order_data.get("customer_id")
+        order.executor_id = order_data.get("executor_id")
 
-       u.id = order_data["id"],
-       u.name = order_data["name"],
-       u.description =order_data["description"],
-       u.start_date = order_data["start_date"],
-       u.end_date = order_data["end_date"],
-       u.address = order_data["address"],
-       u.price = order_data["price"],
-       u.customer_id = order_data["customer_id"],
-       u.executor_id = order_data["executor_id"],
+        db.session.add(order)
+        db.session.commit()
 
-       db.session.add(u)
-       db.session.commit()
 
-       return "", 201
+        return "", 201
 
     if request.method == "DELETE":
         u = Order.query.get(uid)
@@ -192,6 +193,7 @@ def orders_q(uid: int):
         db.session.commit()
 
         return "", 204
+
 
 @app.route("/offers", methods=["GET", "POST"])
 def offers():
@@ -220,20 +222,17 @@ def offers():
 def offers_q(uid: int):
     if request.method == "GET":
         return json.dumps(Offer.query.get(uid).to_dict()), 200, {'Content-Type': 'application/json; charset=utf-8'}
+
     if request.method == "PUT":
-       offer_data = json.loads(request.data)
-       u = Offer.query.get(uid)
+        offer_data = json.loads(request.data)
+        offer = Offer.query.get(uid)
 
-       u.id = offer_data["id"],
-       u.order_id = offer_data["order_id"],
-       u.executor_id =offer_data["executor_id"],
+        offer.order_id = offer_data.get("order_id")
+        offer.executor_id = offer_data.get("executor_id")
 
-
-       db.session.add(u)
-       db.session.commit()
-
-       return "", 201
-
+        db.session.add(offer)
+        db.session.commit()
+        return "", 201
 
     if request.method == "DELETE":
         u = Offer.query.get(uid)
